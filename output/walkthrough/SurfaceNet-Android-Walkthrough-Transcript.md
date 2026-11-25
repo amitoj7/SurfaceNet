@@ -2,40 +2,44 @@
 
 Narration generated locally with the Kokoro-82M Heart voice. App footage was recorded in the Arm64 Android emulator. The rear-camera input is a simulated fixture feed, and the second-light sequence uses an in-app simulation. The held-out results are from the KolektorSDD2 evaluation.
 
-## 00:00 · SurfaceNet
+## 00:00 · From defect to decision
 
 Can a phone flag a defect and tell an operator what to do? Here’s SurfaceNet, working offline.
 
-## 00:05 · Rear camera and clean reference
+## 00:05 · The factory problem
 
-In Inspect, open Rear camera. A mounted phone can enroll a clean part as its reference. The app checks image quality and asks for a new capture if detail is too low.
+On a production line, a scratch and a reflection can look alike. Miss the scratch and a bad part can ship. Hold the good part and an operator has to inspect it again.
 
-## 00:16 · Defect mask and severity
+## 00:14 · Rear camera and reference
 
-Open the annotated defect. The app highlights the mark, estimates its severity, and sends it to review.
+SurfaceNet turns a mounted phone into an offline inspection station. Open Rear camera and enroll a verified clean part as a reference. If the image lacks detail, the app asks for a new capture.
 
-## 00:22 · Second-light verification
+## 00:26 · Defect mask and severity
 
-For a live hold, the rear light can test whether the same defect pixels persist. Here, the phone replay uses simulated lighting. Drag the divider to compare the registered captures.
+Here’s an annotated production specimen from our held-out test set. SurfaceNet outlines the mark and estimates severity from its shape and size.
 
-## 00:33 · Offline Llama advisory
+## 00:34 · Check under a second light
 
-Tap Ask local Llama. Llama 3.2 runs on the Arm CPU through ExecuTorch. For this mark, it recommends keeping the part segregated and checking pit depth.
+For a held part, the operator can check the same mark under a second light. The app aligns the two captures and checks whether the same defect pixels persist. This replay simulates the second exposure. An inconclusive check keeps the part on hold.
 
-## 00:44 · Save and reopen the trace
+## 00:47 · Local Llama advisory
 
-Enter the part ID and save. Trace log reopens the mask, finding and Llama recommendation. Records stay on the device and can be exported as CSV.
+Tap Ask local Llama. Llama 3.2 runs on the Arm CPU through ExecuTorch. Here it recommends keeping the part segregated and asking quality engineering to verify pit depth.
 
-## 00:53 · Device tools
+## 00:59 · Save and review the record
 
-Under Device, compare both vision profiles and export separate live-camera timings.
+Enter a part ID and save the inspection. Trace log reopens the mask, decision and advice. Export the record as CSV.
 
-## 00:59 · Held-out results
+## 01:07 · Measure on the device
 
-Across 1,004 held-out images, four-view INT8 reached 97.45% image AUROC. Both profiles flagged 105 of 110 defects. Four views flagged 35 fewer clean images.
+Under Device, compare the vision profiles and export live camera timings.
 
-## 01:15 · Physical validation
+## 01:11 · Held-out performance
 
-Next we validate sustained throughput and rear-light repeatability on the physical handset.
+On 1,004 held-out images, four-view INT8 reached 97.45% image AUROC. Both profiles sent 105 of 110 defects to alert or review. Four views reduced clean referrals from 165 to 130. That’s 21% fewer.
+
+## 01:31 · Offline from inspection to record
+
+From the first inspection to a saved decision, the whole workflow runs offline.
 
 [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) · [Kokoro ONNX](https://github.com/thewh1teagle/kokoro-onnx) · [KolektorSDD2](https://www.vicos.si/resources/kolektorsdd2/)

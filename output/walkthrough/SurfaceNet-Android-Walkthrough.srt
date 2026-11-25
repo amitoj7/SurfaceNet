@@ -1,73 +1,106 @@
 1
-00:00:00,320 --> 00:00:05,545
-Can a phone flag a defect and tell an operator
-what to do? Here’s SurfaceNet, working offline.
+00:00:00,280 --> 00:00:03,308
+Can a phone flag a defect and
+tell an operator what to do?
 
 2
-00:00:06,167 --> 00:00:11,196
-In Inspect, open Rear camera. A mounted phone
-can enroll a clean part as its reference.
+00:00:03,418 --> 00:00:05,284
+Here’s SurfaceNet, working offline.
 
 3
-00:00:11,336 --> 00:00:15,582
-The app checks image quality and asks
-for a new capture if detail is too low.
+00:00:05,753 --> 00:00:08,992
+On a production line, a scratch
+and a reflection can look alike.
 
 4
-00:00:16,200 --> 00:00:18,981
-Open the annotated defect. The app highlights the
+00:00:09,102 --> 00:00:11,078
+Miss the scratch and a bad part can ship.
 
 5
-00:00:18,981 --> 00:00:22,109
-mark, estimates its severity,
-and sends it to review.
+00:00:11,188 --> 00:00:14,254
+Hold the good part and an
+operator has to inspect it again.
 
 6
-00:00:22,733 --> 00:00:27,062
-For a live hold, the rear light can test
-whether the same defect pixels persist.
+00:00:14,720 --> 00:00:18,560
+SurfaceNet turns a mounted phone
+into an offline inspection station.
 
 7
-00:00:27,202 --> 00:00:32,930
-Here, the phone replay uses simulated lighting.
-Drag the divider to compare the registered captures.
+00:00:18,670 --> 00:00:22,489
+Open Rear camera and enroll a
+verified clean part as a reference.
 
 8
-00:00:33,533 --> 00:00:39,208
+00:00:22,599 --> 00:00:25,661
+If the image lacks detail, the
+app asks for a new capture.
+
+9
+00:00:26,153 --> 00:00:29,524
+Here’s an annotated production
+specimen from our held-out test set.
+
+10
+00:00:29,634 --> 00:00:33,730
+SurfaceNet outlines the mark and estimates
+severity from its shape and size.
+
+11
+00:00:34,220 --> 00:00:37,986
+For a held part, the operator can check
+the same mark under a second light.
+
+12
+00:00:38,096 --> 00:00:42,553
+The app aligns the two captures and checks
+whether the same defect pixels persist.
+
+13
+00:00:42,663 --> 00:00:47,548
+This replay simulates the second exposure.
+An inconclusive check keeps the part on hold.
+
+14
+00:00:48,020 --> 00:00:53,631
 Tap Ask local Llama. Llama 3.2 runs
 on the Arm CPU through ExecuTorch.
 
-9
-00:00:39,348 --> 00:00:43,687
-For this mark, it recommends keeping the
-part segregated and checking pit depth.
+15
+00:00:53,741 --> 00:00:59,010
+Here it recommends keeping the part segregated and
+asking quality engineering to verify pit depth.
 
-10
-00:00:44,300 --> 00:00:49,975
-Enter the part ID and save. Trace log reopens
-the mask, finding and Llama recommendation.
+16
+00:00:59,487 --> 00:01:01,782
+Enter a part ID and save the inspection.
 
-11
-00:00:50,115 --> 00:00:53,385
-Records stay on the device
-and can be exported as CSV.
+17
+00:01:01,892 --> 00:01:06,756
+Trace log reopens the mask, decision
+and advice. Export the record as CSV.
 
-12
-00:00:54,000 --> 00:00:59,030
-Under Device, compare both vision profiles
-and export separate live-camera timings.
+18
+00:01:07,220 --> 00:01:11,333
+Under Device, compare the vision
+profiles and export live camera timings.
 
-13
-00:00:59,633 --> 00:01:07,716
-Across 1,004 held-out images, four-view
+19
+00:01:11,820 --> 00:01:19,431
+On 1,004 held-out images, four-view
 INT8 reached 97.45% image AUROC.
 
-14
-00:01:07,856 --> 00:01:14,997
-Both profiles flagged 105 of 110 defects.
-Four views flagged 35 fewer clean images.
+20
+00:01:19,541 --> 00:01:24,591
+Both profiles sent 105 of 110
+defects to alert or review.
 
-15
-00:01:15,600 --> 00:01:20,400
-Next we validate sustained throughput and
-rear-light repeatability on the physical handset.
+21
+00:01:24,701 --> 00:01:31,483
+Four views reduced clean referrals
+from 165 to 130. That’s 21% fewer.
+
+22
+00:01:31,953 --> 00:01:36,216
+From the first inspection to a saved
+decision, the whole workflow runs offline.

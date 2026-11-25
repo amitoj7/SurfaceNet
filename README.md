@@ -9,7 +9,7 @@ SurfaceNet is an offline visual inspection station for a fixed phone mount and a
 | Android source | [App code](android/app/src/main) · [Build and model setup](#build-and-reproduce) |
 | Vision and evaluation | [Training, calibration and benchmarking code](training) · [Validation results](#validation) |
 | Browser evidence lab | [Client and model worker](website/dist) · [Local launch](#evidence-lab-website) |
-| Jury materials | [Briefing](JURY.md) · [Full technical report (PDF)](output/pdf/SurfaceNet-PS5-Technical-and-Venture-Report.pdf) · [82-second Android walkthrough (MP4)](output/walkthrough/SurfaceNet-Android-Walkthrough.mp4) · [Transcript](output/walkthrough/SurfaceNet-Android-Walkthrough-Transcript.md) |
+| Jury materials | [Briefing](JURY.md) · [Full technical report (PDF)](output/pdf/SurfaceNet-PS5-Technical-and-Venture-Report.pdf) · [98-second Android walkthrough (MP4)](output/walkthrough/SurfaceNet-Android-Walkthrough.mp4) · [Transcript](output/walkthrough/SurfaceNet-Android-Walkthrough-Transcript.md) |
 | Try the app | [Arm64 debug APK](website/dist/assets/surfaceguard.apk) · [Offline demo setup](#what-to-demonstrate) |
 
 Four-view INT8 reached **97.45% image AUROC** on the 1,004-image KolektorSDD2 test split. The recorded Android walkthrough uses an Arm64 emulator and a simulated second exposure. Sustained throughput and rear-light repeatability on the physical handset are pending.
