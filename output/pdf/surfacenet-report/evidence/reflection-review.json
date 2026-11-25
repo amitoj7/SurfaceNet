@@ -1,0 +1,103 @@
+{
+  "alpha": 0.05,
+  "profiles": {
+    "fp32": {
+      "calibration_runtime": "ONNX Runtime CPU",
+      "clear_below": 0.034013498574495316,
+      "alert_above": 0.31507396697998047,
+      "calibration_defects": 49,
+      "calibration_rank": 1,
+      "validation": {
+        "defect": {
+          "clear": 1,
+          "review": 4,
+          "hold": 44,
+          "total": 49
+        },
+        "clean": {
+          "clear": 359,
+          "review": 49,
+          "hold": 9,
+          "total": 417
+        }
+      },
+      "official_test": {
+        "defect": {
+          "clear": 4,
+          "review": 11,
+          "hold": 95,
+          "total": 110
+        },
+        "clean": {
+          "clear": 777,
+          "review": 91,
+          "hold": 26,
+          "total": 894
+        }
+      },
+      "binary_test": {
+        "defect": {
+          "clear": 15,
+          "review": 0,
+          "hold": 95,
+          "total": 110
+        },
+        "clean": {
+          "clear": 868,
+          "review": 0,
+          "hold": 26,
+          "total": 894
+        }
+      }
+    },
+    "int8": {
+      "calibration_runtime": "ExecuTorch XNNPACK",
+      "clear_below": 0.013130689971148968,
+      "alert_above": 0.22313809394836426,
+      "calibration_defects": 49,
+      "calibration_rank": 1,
+      "validation": {
+        "defect": {
+          "clear": 1,
+          "review": 4,
+          "hold": 44,
+          "total": 49
+        },
+        "clean": {
+          "clear": 354,
+          "review": 55,
+          "hold": 8,
+          "total": 417
+        }
+      },
+      "official_test": {
+        "defect": {
+          "clear": 5,
+          "review": 9,
+          "hold": 96,
+          "total": 110
+        },
+        "clean": {
+          "clear": 764,
+          "review": 106,
+          "hold": 24,
+          "total": 894
+        }
+      },
+      "binary_test": {
+        "defect": {
+          "clear": 14,
+          "review": 0,
+          "hold": 96,
+          "total": 110
+        },
+        "clean": {
+          "clear": 870,
+          "review": 0,
+          "hold": 24,
+          "total": 894
+        }
+      }
+    }
+  }
+}

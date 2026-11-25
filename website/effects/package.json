@@ -1,0 +1,17 @@
+{
+  "name": "surfaceguard-hero-effects",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:splash && npm run build:motion",
+    "build:splash": "esbuild mount.jsx --bundle --minify --jsx=automatic --format=esm --legal-comments=eof --outfile=../dist/vendor/hero-splash.js",
+    "build:motion": "esbuild anime-motion.mjs --bundle --minify --format=esm --legal-comments=eof --outfile=../dist/vendor/anime-motion.mjs"
+  },
+  "dependencies": {
+    "animejs": "4.5.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

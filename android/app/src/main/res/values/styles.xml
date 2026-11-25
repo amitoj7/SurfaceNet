@@ -1,0 +1,20 @@
+<resources>
+    <style name="StationTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:windowBackground">#151712</item>
+        <item name="android:colorBackground">#151712</item>
+        <item name="android:colorAccent">#F2AB78</item>
+        <item name="android:alertDialogTheme">@style/StationDialog</item>
+        <item name="android:statusBarColor">#151712</item>
+        <item name="android:navigationBarColor">#151712</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+    <style name="StationDialog" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:colorBackgroundFloating">#1E211A</item>
+        <item name="android:colorAccent">#F2AB78</item>
+        <item name="android:textColorPrimary">#F6F1DF</item>
+        <item name="android:textColorSecondary">#B5B5A3</item>
+    </style>
+</resources>

@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SurfaceNet | Technical and venture report</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<main>
+<section class="page cover" id="cover" aria-labelledby="cover-title">
+  <header class="cover-masthead">
+    <div class="cover-event">
+      <img src="assets/logo.png" width="256" height="250" alt="SurfaceNet logo">
+      <div><b>Bharat AI-SoC Challenge 2026-27</b><p>PS5 · Manufacturing &amp; Industry 4.0</p></div>
+    </div>
+    <p class="cover-kind">Technical and Venture Report</p>
+  </header>
+  <div class="cover-title">
+    <h1 id="cover-title">SurfaceNet</h1>
+    <p>Real-time industrial defect detection<br class="cover-break"> and quality control</p>
+  </div>
+  <figure class="cover-evidence" aria-labelledby="cover-evidence-title">
+    <div class="cover-evidence-head">
+      <strong id="cover-evidence-title">Active optical verification</strong>
+      <span>KolektorSDD2 · Specimen 20193</span>
+    </div>
+    <div class="cover-capture">
+      <img src="assets/cover-ambient.png" width="1024" height="384" alt="Original grayscale specimen with a hook-shaped surface defect near the left side">
+      <div class="capture-key"><span class="capture-id">A</span><b>Ambient exposure</b><p>Original surface image</p></div>
+    </div>
+    <div class="cover-capture">
+      <img src="assets/cover-agreement.png" width="1024" height="384" alt="Aligned simulated second exposure with supported defect pixels in green and unsupported pixels in amber">
+      <div class="capture-key"><span class="capture-id">B</span><b>Mask agreement</b><p>Aligned simulated relight</p>
+        <p class="capture-legend"><span>Supported</span><span>Unsupported</span></p>
+      </div>
+    </div>
+    <figcaption>SurfaceNet replay on a held-out specimen. The alternate illumination was simulated. [3]</figcaption>
+  </figure>
+  <div class="cover-meta">
+    <div><span>Prototype</span><b>Arm Android · v0.7.4</b></div>
+    <div><span>On-device runtime</span><b>INT8 vision and Llama 3.2<br>via ExecuTorch</b></div>
+    <div><span>Prepared by</span><b>SurfaceNet project team</b></div>
+  </div>
+  <p class="cover-issued">25 November 2026</p>
+</section>
+
+<section class="page" id="summary" data-label="Executive summary">
+ <div class="section-title"><span class="eyebrow">ABSTRACT</span><h2>Abstract and <em>key results.</em></h2></div>
+ <div class="stack">
+ <p>SurfaceNet is an Arm Android prototype for industrial surface inspection at a fixed fixture. Its principal contribution is an operator-triggered optical verification loop. When a region is held, the phone changes illumination, registers the new capture and checks whether the localized pixels agree. The vision program and Llama 3.2 1B run through ExecuTorch. The advisory selects a permitted procedure from frozen evidence, and the local record preserves the decision, captures, masks and advisory provenance. [1,7–9,17]</p>
+ <p>On 1,004 held-out KolektorSDD2 images, the 159 KiB four-view INT8 program achieved 97.45% image AUROC and 92.36% image average precision. Both calibrated profiles referred 105 of 110 defective images to alert or review. Four views reduced clean referrals from 165 to 130, a 21.2% relative reduction. The Arm64 Android emulator verified local advisory and trace retrieval. Physical handset throughput and torch repeatability remain prospective endpoints. [2,3]</p>
+ <div class="stats">
+  <div class="stat"><b>97.45%</b><p>Image AUROC, four-view INT8</p></div>
+  <div class="stat"><b>105 / 110</b><p>Defective images routed to alert or review</p></div>
+  <div class="stat"><b>21.2% fewer</b><p>Clean-image referrals with four views</p></div>
+ </div>
+ <div class="callout dark"><p class="micro">PRODUCT THESIS</p><p class="big">An auditable inspection loop.</p><p>A single station combines localized evidence, a repeatable verification procedure and a saved decision that the operator can reopen offline.</p></div>
+ <div class="group"><h3>Report index</h3>
+ <ul class="index">
+  <li><a href="#landscape"><span>Problem &amp; current solutions</span><span>03</span></a></li>
+  <li><a href="#novelty"><span>MVP &amp; contribution</span><span>04</span></a></li>
+  <li><a href="#architecture"><span>System architecture</span><span>05</span></a></li>
+  <li><a href="#method"><span>Research methodology</span><span>06</span></a></li>
+  <li><a href="#edge"><span>Hardware utilization &amp; optimization</span><span>07</span></a></li>
+  <li><a href="#workflow"><span>Operator &amp; lighting workflows</span><span>08</span></a></li>
+  <li><a href="#results"><span>Results &amp; trade-offs</span><span>09</span></a></li>
+  <li><a href="#product"><span>Product evidence &amp; jury demo</span><span>10</span></a></li>
+  <li><a href="#cost"><span>Cost &amp; economics</span><span>11</span></a></li>
+  <li><a href="#market"><span>Marketing methodology</span><span>12</span></a></li>
+  <li><a href="#risks"><span>Engineering challenges &amp; limits</span><span>13</span></a></li>
+  <li><a href="#roadmap"><span>Physical study &amp; roadmap</span><span>14</span></a></li>
+  <li><a href="#sources"><span>References &amp; reproducibility</span><span>15</span></a></li>
+ </ul></div>
+ </div>
+</section>
+
+<section class="page" id="landscape" data-label="Problem and landscape">
+ <div class="section-title"><span class="eyebrow">PROBLEM DEFINITION</span><h2>Problem and <em>related work.</em></h2><p class="intro">The first deployment is a supervised inspection bench for a repeatable machined-part family in a small or mid-sized manufacturing shop.</p></div>
+ <div class="stack">
+ <div class="two">
+  <div class="box"><h3>Operator job</h3><p>Decide whether a visible mark merits a hold, record where it appeared, and leave enough evidence for another person to resolve it.</p></div>
+  <div class="box"><h3>Buyer job</h3><p>Find missed defects and excessive review effort on one part family. Validate the station against the current process before expanding.</p></div>
+ </div>
+ <table><thead><tr><th>Current approach</th><th>What it offers</th><th>Role in a comparison</th></tr></thead><tbody>
+  <tr><td><b>Manual visual inspection</b></td><td>Immediate operator judgment, flexible handling and use of established SOPs.</td><td>Primary pilot baseline. Measure inspection time, disagreements and record completeness.</td></tr>
+  <tr><td><b>Rule-based vision</b></td><td>Explicit position, edge and size checks under controlled geometry and lighting.</td><td>Strong baseline for a constrained fixture. Compare where texture and glare create ambiguous marks.</td></tr>
+  <tr><td><b>KEYENCE IV3</b> [12]</td><td>Dedicated vision sensor with built-in AI, automated setup features and illumination options.</td><td>Instrument-grade comparison for a future station procurement decision. Obtain a station quote and test the same part.</td></tr>
+  <tr><td><b>Cognex In-Sight D900</b> [11]</td><td>Dedicated deep-learning smart-camera platform for industrial inspection.</td><td>Compare integration, optics, support and actual costs through a matched trial.</td></tr>
+  <tr><td><b>LandingLens</b> [13]</td><td>Visual model workflow with cloud and edge deployment options described by the vendor.</td><td>Compare dataset setup effort, deployment requirements and the operator workflow.</td></tr>
+  <tr><td><b>EfficientAD / Anomalib</b> [4,6]</td><td>Research approach and implementation for efficient anomaly detection from nominal examples.</td><td>Architecture baseline for a future matched evaluation by split, resolution and hardware.</td></tr>
+ </tbody></table>
+ <p class="note">Supplier rows summarize published features. EfficientAD establishes a compact anomaly detection baseline, while PNI shows why nominal appearance can depend on spatial context. SurfaceNet uses a registered clean reference at the fixture. MVTec AD 2 motivates a separate illumination-shift study. Formal comparisons require matched images, decision rules and hardware. [4–6,19]</p>
+ <div class="callout"><h3>Initial scope</h3><p>Use a fixed phone mount, a single part family, a defined region of interest, and a trained operator. The MVP supports spot checks and supervised bench work. Production integration, automatic rejects and safety-critical release certification require separate validation.</p></div>
+ </div>
+</section>
+
+<section class="page" id="novelty" data-label="Contribution and MVP">
+ <div class="section-title"><span class="eyebrow">CONTRIBUTION</span><h2>Active optical <em>verification.</em></h2><p class="intro">The system tests a candidate defect by varying illumination while holding the nominal part pose fixed. The aligned spatial evidence informs the operator procedure.</p></div>
+ <div class="stack">
+ <div class="three">
+  <div class="box"><h3>One location, two exposures</h3><p>For a held region, the phone can fire its rear torch. The check requires adequate lighting change and alignment, then demands bidirectional mask support.</p></div>
+  <div class="box"><h3>Review is a decision</h3><p>Separate clear and alert cutoffs create a review band. Spatial consistency, fixture enrollment, and image quality protect the live disposition.</p></div>
+  <div class="box"><h3>Evidence governs advice</h3><p>Llama receives structured observations after capture freezes. It chooses an allowed procedure, and the record keeps the advisory source.</p></div>
+ </div>
+ <table><thead><tr><th>PS5 requirement</th><th>Shipped MVP</th><th>Evidence boundary</th></tr></thead><tbody>
+  <tr><td>Detect surface defects, cracks and anomalies</td><td>Pixel masks for learned defects. Clean-reference residuals for unfamiliar changes.</td><td>Dataset detection is measured. Unfamiliar defects on physical parts need independent tests.</td></tr>
+  <tr><td>Classify type and severity</td><td>Line-like, compact and diffuse morphology. Ordinal geometric severity proxy.</td><td>Crack-like shape is an observation. Physical crack confirmation and tolerances require metrology.</td></tr>
+  <tr><td>Alert and recommend action</td><td>Hold, review and reacquire states. Llama 3.2 1B advisory through ExecuTorch.</td><td>Offline advisory and trace were exercised on an Arm64 emulator.</td></tr>
+  <tr><td>Log inspection outcomes</td><td>Part ID, image crop, mask, decision and advisory provenance in a local trace. CSV export.</td><td>SQLite record and reopen flow verified. Plant system integration is future work.</td></tr>
+  <tr><td>Real-time on-device operation</td><td>CameraX and INT8 vision on the Arm CPU. Timing export from the live app.</td><td>Host forward timing and emulator pipeline timing are available. Physical cycle time remains to be measured.</td></tr>
+ </tbody></table>
+ <div class="callout"><h3>System contribution</h3><p>SurfaceNet implements controlled recapture, bidirectional mask agreement, selective disposition and constrained offline advice as one phone-based procedure. The second exposure tests spatial persistence. An inconclusive check retains the hold for review. The controlled perturbation study isolates the mask-agreement rule, while the planned fixture trial tests the physical torch.</p></div>
+ </div>
+</section>
+
+<section class="page" id="architecture" data-label="Implementation">
+ <div class="section-title"><span class="eyebrow">SYSTEM DESIGN</span><h2>On-device <em>architecture.</em></h2></div>
+ <div class="stack">
+ <figure aria-labelledby="architecture-cap">
+  <div class="flow">
+    <div class="node"><h3>CameraX rear camera</h3><p>Rotation-corrected, 96 × 256 luminance crop. Latest-frame scheduling.</p></div><span class="arrow">→</span>
+    <div class="node focus"><h3>INT8 vision</h3><p>SurfaceNet v2 in ExecuTorch/XNNPACK. Single view or four reflected views.</p></div><span class="arrow">→</span>
+    <div class="node"><h3>Evidence gate</h3><p>Quality, clean-reference alignment, repeat-frame logic and optional rear-light check.</p></div>
+  </div>
+  <div class="connector">↓ OPERATOR FREEZES EVIDENCE ↓</div>
+  <div class="flow">
+    <div class="node"><h3>Frozen finding</h3><p>Scores, shape, severity proxy, disposition and lighting result.</p></div><span class="arrow">→</span>
+    <div class="node focus"><h3>Llama 3.2 1B</h3><p>Separate 4-bit ExecuTorch model. Selects one of two allowed procedures with SOP fallback.</p></div><span class="arrow">→</span>
+    <div class="node"><h3>SQLite trace</h3><p>Part ID, evidence, timing, runtime profile and advice provenance.</p></div>
+  </div>
+  <figcaption id="architecture-cap">Figure 1. Android data flow. Both models execute on the Arm CPU. Vision remains on the capture path. The advisory runs on demand after the operator freezes evidence and chooses a procedure without altering the vision disposition. [7–10,17]</figcaption>
+ </figure>
+ <table><thead><tr><th>Layer</th><th>Implementation and interfaces</th></tr></thead><tbody>
+  <tr><td>Native capture</td><td>CameraX keeps the latest frame. Dedicated vision work turns an eligible frame into a decision. The configured 100 ms interval limits analysis request rate.</td></tr>
+  <tr><td>Surface and anomaly evidence</td><td>The learned segmenter produces a dense logit map. A parallel clean-reference branch uses eight enrolled frames, bounded translation and brightness-offset compensation for unfamiliar changes.</td></tr>
+  <tr><td>Operator state</td><td>Android reports finding morphology, score and mask. The live timing export includes profile, frame count, measured rate and percentile timings, with sensor timings only when comparable.</td></tr>
+  <tr><td>Storage and distribution</td><td>Signed Arm64 APK (~18 MiB) with separate imports for the pinned Llama PTE and tokenizer. Verify both files by SHA-256. SQLite evidence and CSV exports are local.</td></tr>
+  <tr><td>Browser companion</td><td>ONNX Runtime Web in a worker. Live single-view FP32 detection, repeat-frame review, browser-rule guidance, freeze, part ID and JSON evidence export. Recorded specimens support both profiles. [18]</td></tr>
+ </tbody></table>
+ <p class="note">The iQOO Z9s Pro 5G is the documented target hardware. The published specifications list Snapdragon 7 Gen 3. Record the handset variant and software build in the field-test ledger. [10]</p>
+ <div class="box"><h3>Proposed Raspberry Pi 5 port</h3><p>Use 64-bit Raspberry Pi OS, Picamera2 and a switchable external light in place of CameraX and the phone torch. Run the INT8 segmenter and Llama advisory as separate ExecuTorch/XNNPACK programs on the Arm CPU. Qualify camera registration, model output parity, peak RAM and sustained latency before deployment. [22,23]</p></div>
+ </div>
+</section>
+
+<section class="page" id="method" data-label="Research methodology">
+ <div class="section-title"><span class="eyebrow">METHODS</span><h2>Training and <em>calibration.</em></h2><p class="intro">Use disjoint training, validation and test partitions. Select checkpoints and decision thresholds on validation, then score the fixed profiles on the official test split.</p></div>
+ <div class="stack">
+ <div class="flow">
+   <div class="node"><h3>Train · 1,865</h3><p>197 defective images. Learn mask features and image-level context.</p></div><span class="arrow">→</span>
+   <div class="node focus"><h3>Validate · 466</h3><p>49 defective images. Select checkpoint, profile and operating thresholds.</p></div><span class="arrow">→</span>
+   <div class="node"><h3>Test · 1,004</h3><p>110 defective and 894 clean. Report image, pixel and workload metrics.</p></div>
+ </div>
+ <p class="small">Split the official training partition by defect label using seed 184 and reserve approximately 20% of each class for validation. Freeze the checkpoint and decision cutoffs before scoring the official test split. Use the same test annotations for both vision profiles. [2,3]</p>
+ <table><thead><tr><th>Design decision</th><th>Method</th></tr></thead><tbody>
+  <tr><td><b>Compact vision model</b></td><td>124,455 parameters. Multi-resolution decoder, input skip and image-level recognition head. Train with weighted sampling, batch size 24 and AdamW (0.002 cosine-decayed to 0.0003). Combine focal BCE, Dice, image classification and hard background mining with photometric and specular augmentation. Validation image AP selected epoch 29 of 40.</td></tr>
+  <tr><td><b>Edge export</b></td><td>Static per-channel INT8 post-training quantization uses 384 calibration images from the training partition. Compare numerical behavior and validation performance before deployment. [21]</td></tr>
+  <tr><td><b>Four-view inference</b></td><td>Reflect the crop across two image axes and their combination, batch the four transforms with shared weights, invert the transforms, and average the logits. Validation compared context weights 0 and 0.25. The 0.25 profile met the release criteria.</td></tr>
+  <tr><td><b>Operating thresholds</b></td><td>Alert cutoff from the 98th percentile of validation-negative scores. Clear cutoff from the second-lowest of 49 validation-defective scores (α = 0.05 lower-tail rank). The interval maps to manual review, a selective decision analogous to an abstention region. The rank cutoff was chosen empirically and requires fixture-specific field validation. [20]</td></tr>
+  <tr><td><b>Metrics and timing</b></td><td>Image AUROC and average precision assess ranking. Approximate pixel AP combines 2,048 score bins at the resized resolution. Report alerts, clean referrals and defect escapes at the chosen cutoffs. Host p95 uses 120 warmed forward calls per profile.</td></tr>
+ </tbody></table>
+ <div class="two">
+  <div class="box"><h3>Single-view INT8</h3><p><b>Clear &lt; 0.04878 · Alert &gt; 0.45331</b></p><p class="small">Default profile. Smaller program and lower host latency.</p></div>
+  <div class="box"><h3>Four-view INT8</h3><p><b>Clear &lt; 0.01313 · Alert &gt; 0.22314</b></p><p class="small">Alternative profile. Per-image workload improved with the calibrated band.</p></div>
+ </div>
+ <p class="note">The paired-light ablation applied deterministic exposure gain, luminance offset and translation of up to two pixels. Every third alternate added a synthetic highlight. The ablation changes the mask-agreement rule while keeping the vision profile and alert cutoff fixed. [5]</p>
+ </div>
+</section>
+
+<section class="page" id="edge" data-label="Hardware utilization and optimization">
+ <div class="section-title"><span class="eyebrow">EDGE ENGINEERING</span><h2>Hardware and <em>optimization.</em></h2><p class="intro">The Android prototype schedules compact vision on the Arm CPU during inspection and invokes Llama after the operator freezes the finding.</p></div>
+ <div class="stack">
+ <table aria-label="Hardware allocation and runtime controls"><thead><tr><th>Resource</th><th>Allocation and optimization</th></tr></thead><tbody>
+  <tr><td><b>Rear camera and torch</b></td><td>CameraX keeps the latest frame and admits one analysis request per 100 ms at most. Preprocessing samples a rotation-corrected 96 × 256 crop from the luminance plane. A flash-capable rear camera supplies the alternate illumination on demand. [8,9]</td></tr>
+  <tr><td><b>Arm CPU · vision</b></td><td>ExecuTorch 1.5.0 runs the calibrated INT8 segmenter. XNNPACK handles delegated kernels. Single view is the default. The optional four-view graph batches reflected inputs with shared weights and averages aligned predictions. [21,27]</td></tr>
+  <tr><td><b>Arm CPU · advisory</b></td><td>Llama 3.2 1B Instruct uses the pinned 4-bit SpinQuant export. The app releases the vision module before advice, limits the context to 256 tokens and stops on a valid choice or after 12 output callbacks. [7,17,26]</td></tr>
+  <tr><td><b>Memory and storage</b></td><td>Both loaders memory-map their model programs. The ~18 MiB APK bundles vision. The imported Llama program is ~1.14 GB and the tokenizer is ~2.2 MB. Inspection records stay in local SQLite. Model file sizes describe storage.</td></tr>
+ </tbody></table>
+ <div class="group"><h3>Controlled quantization comparisons</h3>
+ <table aria-label="Effects of FP32 to INT8 post-training quantization on the Apple M3 host"><thead><tr><th>Vision profile</th><th class="num">Program size, KiB</th><th class="num">Warm p95, ms</th><th class="num">Test image AP</th></tr></thead><tbody>
+  <tr><td><b>Single view</b></td><td class="num">502.1 → 153.4</td><td class="num">1.957 → 1.103</td><td class="num">90.54% → 91.48%</td></tr>
+  <tr><td><b>Four views</b></td><td class="num">506.1 → 159.0</td><td class="num">9.860 → 6.629</td><td class="num">91.96% → 92.36%</td></tr>
+ </tbody></table>
+ <p class="small">FP32 → INT8 within each profile. Single view used 69.5% less program storage and 43.6% lower host p95. Each comparison used 120 warmed forwards per variant. Source files are listed under reproducibility.</p></div>
+ <div class="callout"><h3>Measurement boundaries</h3><p>Inference is CPU-only. The on-device benchmark exports the device and SoC IDs, thermal status before and after, and 120 raw timings per profile after 16 warmups. Live capture exports separate analyzer timing and throughput. Add process CPU load, peak proportional set size (PSS), power draw and thermal status during a sustained handset run. Time cold and warm Llama calls separately.</p></div>
+ </div>
+</section>
+
+<section class="page" id="workflow" data-label="Operator and light workflows">
+ <div class="section-title"><span class="eyebrow">OPERATOR WORKFLOW</span><h2>Inspection and <em>disposition.</em></h2></div>
+ <div class="stack">
+ <figure aria-labelledby="operator-cap">
+  <div class="flow"><div class="node"><h3>Enroll clean</h3><p>Fix the part pose and lighting. Capture eight verified clean frames.</p></div><span class="arrow">→</span><div class="node"><h3>Inspect</h3><p>Localize marks and compare recent frames. Show the mask and estimated severity.</p></div><span class="arrow">→</span><div class="node focus"><h3>Act and save</h3><p>Freeze evidence, choose local advice, add the part ID and save to the trace.</p></div></div>
+  <figcaption id="operator-cap">Figure 2. Normal station sequence. A still-image replay exercises capture evidence and advisory, and is recorded as a separate source.</figcaption>
+ </figure>
+ <figure aria-labelledby="light-cap">
+  <div class="flow"><div class="node"><h3>Hold a candidate</h3><p>Three spatially consistent findings in four live observations.</p></div><span class="arrow">→</span><div class="node"><h3>Change illumination</h3><p>Fire the rear torch, wait for exposure settling, and capture alternates.</p></div><span class="arrow">→</span><div class="node focus"><h3>Register and compare</h3><p>Check image quality, correlation, displacement and mask correspondence.</p></div></div>
+  <div class="connector">↓ EVIDENCE OUTCOME ↓</div>
+  <div class="branch">
+   <div class="decision focus"><h3>Persistent</h3><p>At least 3 of 5 usable frames match. Preserve the hold and inspect the repeatable mark.</p></div>
+   <div class="decision"><h3>Unconfirmed</h3><p>Weak overlap or a shifted mark stays held for operator review.</p></div>
+   <div class="decision"><h3>Inconclusive</h3><p>Unusable exposure, registration or light change prompts reacquisition or manual review.</p></div>
+  </div>
+  <figcaption id="light-cap">Figure 3. The second-light procedure. The operator initiates the check on a held finding.</figcaption>
+ </figure>
+ <div class="two">
+  <div class="box"><h3>Registration gate</h3><p>Search ±4 px. Require correlation ≥0.58, motion short of the search boundary, and a 75th-percentile luminance change of ≥7 levels.</p></div>
+  <div class="box"><h3>Pixel evidence gate</h3><p>Require box IoU ≥0.25 and at least 60% of each registered mask within one pixel of the other mask.</p></div>
+ </div>
+ <div class="callout"><h3>Severity and human disposition</h3><p>Mask area fraction and elongation support an ordinal low, moderate or high estimate. Learned marks use area cutoffs of 0.2% and 1.2%. Elongation ≥4.5 also maps to high. Unknown marks remain unrated. The operator owns pass or hold under the station SOP. The advice source stays visible in the record.</p></div>
+ </div>
+</section>
+
+<section class="page" id="results" data-label="Results and trade-offs">
+ <div class="section-title"><span class="eyebrow">HELD-OUT TEST · KOLEKTORSDD2</span><h2>Accuracy and <em>review burden.</em></h2></div>
+ <div class="stack">
+ <figure class="graph"><img src="assets/precision-recall.png" alt="Precision-recall curves for single-view and four-view INT8. Four-view image average precision is 92.36 percent versus 91.48 percent for single view."><figcaption>Figure 4. Image precision–recall on the same 1,004 held-out images. AP summarizes the full curve.</figcaption></figure>
+ <table aria-label="Held-out results by vision profile"><thead><tr><th>Measure</th><th class="num">Single view</th><th class="num">Four views</th></tr></thead><tbody>
+  <tr><td>Image AUROC / average precision</td><td class="num">97.29% / 91.48%</td><td class="num"><b>97.45% / 92.36%</b></td></tr>
+  <tr><td>Pixel average precision</td><td class="num"><b>73.45%</b></td><td class="num">69.16%</td></tr>
+  <tr><td>Defective images directly alerted (of 110)</td><td class="num">91</td><td class="num"><b>96</b></td></tr>
+  <tr><td>Clean images directly alerted (of 894)</td><td class="num"><b>13</b></td><td class="num">24</td></tr>
+  <tr><td>Defective images alerted or reviewed (of 110)</td><td class="num">105</td><td class="num">105</td></tr>
+  <tr><td>Clean images alerted or reviewed (of 894)</td><td class="num">165 (18.5%)</td><td class="num"><b>130 (14.5%)</b></td></tr>
+  <tr><td>Apple M3 warm forward p95 / model size</td><td class="num"><b>1.06 ms / 153.4 KiB</b></td><td class="num">6.63 ms / 159.0 KiB</td></tr>
+ </tbody></table>
+ <div class="callout"><h3>Selective screening at the tested operating points</h3><p>Four views referred 35 fewer clean images at the same defect referral count (21.2% relative). They also produced 11 additional direct alerts on clean images and 4.29 percentage points lower pixel AP. Single view remains the live default because it had lower warm forward latency and higher pixel AP.</p></div>
+ <div class="box"><h3>Quantization reduced the four-view program by 68.6%</h3><p class="small">In a same-profile FP32–INT8 comparison, the program shrank from 506.1 to 159.0 KiB and Apple M3 warm forward p95 decreased from 9.86 to 6.63 ms. Held-out image AP changed from 91.96% to 92.36%. See the hardware section for the corresponding single-view comparison. [21]</p></div>
+ <p class="small">Five defective images fell below each profile’s clear cutoff in the score-only comparison. Each profile referred 95.5% of defects (approximate Wilson 95% interval 89.8–98.0%, treating images as independent). Equal counts can include different specimens. Live evidence checks and operator review are outside this image-level comparison. [2,3]</p>
+ </div>
+</section>
+
+<section class="page" id="product" data-label="Product evidence and jury demo">
+ <div class="section-title"><span class="eyebrow">DEMONSTRATION EVIDENCE</span><h2>Offline prototype <em>verification.</em></h2></div>
+ <div class="stack">
+ <div class="plates">
+  <figure><img class="frame" src="assets/browser.png" alt="SurfaceNet browser interface with evidence rail and industrial inspection imagery"><figcaption>Figure 5. SurfaceNet browser companion with direct access to live camera, recorded specimens and benchmark evidence. [16,18]</figcaption><p class="small screen-note"><b>Android is the PS5 demonstration.</b> Use the browser to explore the specimens and performance evidence on a second screen.</p></figure>
+  <figure><div class="phones"><img src="assets/android.png" alt="Android inspection screen open to the defect specimen"><img src="assets/trace.png" alt="Saved Android inspection trace and local advisory"></div><figcaption>Figure 6. Android inspection screen with a recorded specimen and a saved offline trace. The saved trace was reopened on v0.7.4 in airplane mode.</figcaption></figure>
+ </div>
+ <div class="stats">
+   <div class="stat"><b>192</b><p>Analyzed fixture frames</p></div>
+   <div class="stat"><b>8.86/s</b><p>Emulator decisions over 21.6 s</p></div>
+   <div class="stat"><b>4.83 ms</b><p>Analyzer-to-decision p95</p></div>
+ </div>
+ <p class="small">The API 35 Arm64 emulator ran the release APK and single-view INT8 model from a fixture image supplied as its rear-camera input. Analyzer-to-decision excludes sensor acquisition, rendering and torch time. The run supplied no comparable sensor time. The offline advisory and saved record were exercised separately. [8,9]</p>
+ <div class="two">
+  <div class="box"><h3>Demonstration protocol</h3><ol class="clean"><li>Enroll a clean part and start live rear-camera inspection in airplane mode.</li><li>Introduce a marked part. Show the hold and its localized evidence. Trigger the second-light check.</li><li>Freeze, request local advice, save under a part ID and reopen the trace.</li></ol></div>
+  <div class="box"><h3>Deployment preparation</h3><p>Install the signed APK on the demo phone and import the pinned Llama program and tokenizer before the session. Reserve about 2.5 GB during setup. The recorded specimen provides a repeatable fallback with explicit capture provenance. Verify browser access and camera permissions before the demonstration. [17]</p></div>
+ </div>
+ <div class="callout"><h3>Verified prototype behavior</h3><p>On v0.7.4, the app reported 5.60 s for one offline advisory call. The saved record reopened with Llama provenance. The advisory and live CameraX timings come from separate emulator runs.</p></div>
+ </div>
+</section>
+
+<section class="page" id="cost" data-label="Expected costs and economics">
+ <div class="section-title"><span class="eyebrow">HARDWARE PLANNING · INR</span><h2>Cost of an <em>inspection station.</em></h2><p class="intro">Reuse an Android phone for the lowest-cost trial. A CPU-only Raspberry Pi 5 is the proposed lower-cost option when buying a dedicated station.</p></div>
+ <div class="stack">
+ <div class="stats cost-options">
+  <div class="stat"><b>₹4.0–8.5k</b><p>Existing Android phone</p></div>
+  <div class="stat"><b>₹23.0–26.0k</b><p>New Raspberry Pi 5 bench</p></div>
+  <div class="stat"><b>₹26.0–38.5k</b><p>New Android phone and fixture</p></div>
+ </div>
+ <table aria-label="Proposed Raspberry Pi 5 bill of materials"><thead><tr><th>Pi 5 bill of materials</th><th>Basis</th><th class="num">Budget</th></tr></thead><tbody>
+  <tr><td>Raspberry Pi 5 · 4 GB</td><td>CPU-only Arm64 board. [22,24]</td><td class="num">₹13,459</td></tr>
+  <tr><td>Camera and ribbon cable</td><td>Camera Module 2 ₹1,748 + Standard–Mini cable ₹134. [22,24]</td><td class="num">₹1,882</td></tr>
+  <tr><td>Power, cooling and storage</td><td>27 W supply ₹1,345 + active cooler ₹531 + 64 GB microSD ₹534. [25]</td><td class="num">₹2,410</td></tr>
+  <tr><td>Fixture and second light</td><td>Jig ₹600–2,000, light ₹1,290–2,200 and mounting/switching ₹400–700. Planning allowances. [15]</td><td class="num">₹2,290–4,900</td></tr>
+  <tr><td><b>New Pi 5 bench total</b></td><td>₹17,751 core parts plus fixture and light. Includes 15% contingency.</td><td class="num"><b>₹23,047–26,049</b></td></tr>
+ </tbody></table>
+ <p class="small">Supplier snapshots checked 25 November 2026. Estimates reuse an operator display or local terminal and exclude shipping, labor and industrial integration. Reusing a Pi 5 board trims incremental Pi hardware to ₹7,569–10,571. Android fixtures include mount ₹1,200–2,400, light ₹1,290–2,200, jig ₹600–2,000, and power ₹400–800, plus 15% contingency. The new-phone scenario adds a ₹22,000–30,000 handset allowance. [14,15,24,25]</p>
+ <div class="two">
+  <div class="box"><h3>Pilot price hypothesis</h3><p>Test ₹25k–60k for a one-station pilot. A ₹40k example includes hardware, setup and training with a reused phone. Optional ₹1.5k/month support gives ₹58k in year one before taxes and customer labor.</p></div>
+  <div class="box"><h3>Illustrative payback</h3><p>At 12,000 parts/month, six seconds saved per part and ₹300/hour recover ₹6,000/month in capacity. With ₹3,000/month in separately verified avoided losses and ₹1,500 support, simple payback is 5.3 months, or 8.9 months from time savings alone.</p></div>
+ </div>
+ <p class="note">The offline pipeline has an estimated ₹0 variable cloud inference charge. Compare local operating costs and actual capacity savings in a shadow trial.</p>
+ </div>
+</section>
+
+<section class="page" id="market" data-label="Marketing and pilot methodology">
+ <div class="section-title"><span class="eyebrow">GO-TO-MARKET</span><h2>Customer discovery and <em>pilot design.</em></h2><p class="intro">Recruit plant quality leads for a measured trial on one inspection task. The pilot scorecard tests workflow performance and willingness to pay before expansion.</p></div>
+ <div class="stack">
+ <figure aria-labelledby="market-cap"><div class="flow">
+  <div class="node"><h3>Find the costly hold</h3><p>Interview quality leads and operators. Find one recurrent defect and a stable fixture.</p></div><span class="arrow">→</span>
+  <div class="node"><h3>Run in shadow mode</h3><p>Record SurfaceNet and baseline decisions side by side. Keep the current release SOP active.</p></div><span class="arrow">→</span>
+  <div class="node focus"><h3>Prove value and expand</h3><p>Share an approved scorecard and quote the next SKU or station after sign-off.</p></div>
+ </div><figcaption id="market-cap">Figure 7. Pilot-led marketing methodology. Expansion depends on measured site performance.</figcaption></figure>
+ <table><thead><tr><th>Market decision</th><th>Method</th><th>Owner or measure</th></tr></thead><tbody>
+  <tr><td>Who to approach</td><td>Precision machining and small metal-component makers with bench inspection, repeatable lots and recurring visible defects.</td><td>Quality manager champions. Plant or operations lead budgets. Operator validates workflow.</td></tr>
+  <tr><td>How to reach them</td><td>Use industrial-cluster outreach and local automation integrators. Lead with a short live demonstration and an anonymized example record.</td><td>Track qualified conversations and bench visits by channel.</td></tr>
+  <tr><td>What qualifies a site</td><td>One stable part family, sample access, defect labels that an operator can adjudicate, and a measurable inspection burden.</td><td>Get permission for evidence capture and agree on success thresholds.</td></tr>
+  <tr><td>What a pilot proves</td><td>Measure defect routing, clean referrals, review time, trace completeness and time to train an operator.</td><td>Quality and operations sign the scorecard. Use case material only with permission.</td></tr>
+  <tr><td>When to expand</td><td>Standardize jig, enrollment and acceptance protocol before quoting another family or plant.</td><td>Look for a funded second station and repeatable installation time.</td></tr>
+ </tbody></table>
+ <div class="callout"><h3>Discovery targets</h3><p>Start with 15 interviews, screen five qualified benches, pursue two pilots and aim for one paid expansion. These are planning targets. Size the addressable market from verified eligible sites, stations per site and tested willingness to pay.</p></div>
+ </div>
+</section>
+
+<section class="page" id="risks" data-label="Engineering lessons and current limits">
+ <div class="section-title"><span class="eyebrow">ENGINEERING REVIEW</span><h2>Engineering lessons and <em>limitations.</em></h2></div>
+ <div class="stack">
+ <table><thead><tr><th>Challenge</th><th>Change shipped or tested</th><th>Residual risk</th></tr></thead><tbody>
+  <tr><td>Glare and small pose shifts can mimic a mark.</td><td>Bounded registration, clean-reference enrollment, brightness compensation and quality checks. Second-light confirmation requires spatial agreement.</td><td>Curved specular parts, weak torch response and larger shifts can still trigger review.</td></tr>
+  <tr><td>A single cutoff forced borderline cases into clear or alert.</td><td>Calibrated review band and repeated live evidence before a terminal recommendation.</td><td>Additional holds consume time. Thresholds depend on the part family and calibrated fixture.</td></tr>
+  <tr><td>Paired-light fine-tuning lowered validation AP.</td><td>After 24 epochs, image AP fell from 91.40% to 89.83% and pixel AP from 73.30% to 72.95%. Validation recall moved from 39/49 to 40/49 at the same false-alert count. Retained the baseline weights.</td><td>Simulated gain, offsets, shifts and specular spots have limited physical realism. [5]</td></tr>
+  <tr><td>Local advisory initially hit fallback during testing.</td><td>Adjusted answer budgeting and execution coordination. Validated the output against allowed procedures and kept the deterministic fallback.</td><td>Setup is sizable. Device-specific response time, failure rate and thermal behavior need measurement.</td></tr>
+  <tr><td>Capture silence and mixed timing scopes made diagnosis difficult.</td><td>Added a first-frame watchdog and live telemetry export. Tagged replay, host forward and live analyzer timing separately.</td><td>Phone permissions, camera timing source and prolonged use remain field variables.</td></tr>
+ </tbody></table>
+ <div class="two">
+  <figure><img class="frame" src="assets/specimen-agreement.webp" alt="Recorded specimen crop showing visualized alignment and pixel support between two simulated views"><figcaption>Figure 8. Registered evidence in the recorded workflow. Local overlays expose which pixels support the candidate.</figcaption></figure>
+  <div class="box"><h3>Ablation under simulated lighting</h3><p>For the four-view profile, adding bidirectional mask agreement to box overlap reduced confirmations on clean images from 14 to 11 of 24 clean alerts. Defect confirmations moved from 92 to 88 of 96 defect alerts. Unconfirmed observations remain held for review. Physical torch benefit remains open.</p></div>
+ </div>
+ <p class="small">Current limitations include one public dataset for headline metrics, a single enrolled fixture at a time, morphological defect classes, and severity based on image geometry. The app requests camera access and keeps traces local. Set export and retention rules with each site. The bundled KSDD2 derivatives are for non-commercial challenge use under CC BY-NC-SA 4.0. Use rights-cleared data and review model distribution terms before commercial rollout. [3,17]</p>
+ </div>
+</section>
+
+<section class="page" id="roadmap" data-label="Physical study and future planning">
+ <div class="section-title"><span class="eyebrow">NEXT VALIDATION</span><h2>Physical validation <em>roadmap.</em></h2></div>
+ <div class="stack">
+ <figure aria-labelledby="study-cap"><div class="flow">
+  <div class="node"><h3>Label the parts</h3><p>60 clean and 60 defective unique parts. Quality staff label before exposure to app outputs.</p></div><span class="arrow">→</span>
+  <div class="node"><h3>Freeze the protocol</h3><p>Lock profiles and light settings. Randomize part order and counterbalance the secondary condition.</p></div><span class="arrow">→</span>
+  <div class="node focus"><h3>Score terminal outcomes</h3><p>Count missing records, report interval estimates and retain timing plus operator adjudication.</p></div>
+ </div><figcaption id="study-cap">Figure 9. Prospective study design. Use one terminal result per part per run. Pair by part for cross-condition analysis.</figcaption></figure>
+ <table><thead><tr><th>Horizon</th><th>Build and validation work</th><th>Gate</th></tr></thead><tbody>
+  <tr><td>Weeks 0–2<br><b>Handset readiness</b></td><td>Lock APK and asset hashes, calibrate mount and lighting, test in airplane mode, and run a 10-minute camera soak. Record Android build, thermal conditions and model timing.</td><td>Repeat the full demo on the physical phone and export a trace for each procedure.</td></tr>
+  <tr><td>Weeks 3–6<br><b>Shadow trial</b></td><td>Run the labeled study above and compare operator-only, single-view and second-light decisions. Score the primary light setting independently and report paired secondary results.</td><td>Exploratory targets ≥90% defect referral, ≤5% clean false hold, ≥6 decisions/s and analyzer p95 ≤150 ms. Report operator review time and uncertainty.</td></tr>
+  <tr><td>Weeks 7–10<br><b>PoC readiness</b></td><td>Use rights-cleared examples, add part recipes and approval controls, measure drift by lot and benchmark EfficientAD under a matched protocol. Define maintenance and rollback.</td><td>Quality sign-off and documented asset rights before a field rollout. Request another fixed fixture only after the first meets its acceptance criteria.</td></tr>
+ </tbody></table>
+ <div class="two">
+  <div class="box"><h3>Who owns a release</h3><p>The site’s quality team owns disposition under its SOP. Hold, unconfirmed and invalid captures go to review. Orders to change a process or release a part require the site’s authority.</p></div>
+  <div class="box"><h3>Measure failure as well as speed</h3><p>Include timeouts, unreadable exposures, duplicate IDs, drift by shift, torch recovery and Llama fallback frequency. Keep timing boundaries and capture sources visible in exports.</p></div>
+ </div>
+ <p class="small">Define defect referral as HOLD or REVIEW, and clean false hold as HOLD. Report clean review workload separately. Include missing records, counts and Wilson 95% intervals. With 60 parts per class, confirm on more lots before generalizing.</p>
+ <div class="box"><h3>Raspberry Pi 5 feasibility gate</h3><p>Run the Linux port on the same labeled fixture. Measure peak RAM, sustained decision rate, p95 latency, time to first Llama response and paired-light repeatability. Keep the Pi evidence separate from Android and host benchmarks. [22,23]</p></div>
+ <div class="callout"><h3>Proof of concept milestone</h3><p>If shortlisted, package the physical results and demo before the 5 February 2027 Phase 2 deadline. The strongest demonstration links a live, localized defect to a second optical observation, an offline Llama recommendation and a stable record. [1]</p></div>
+ </div>
+</section>
+
+<section class="page" id="sources" data-label="References and reproducibility">
+ <div class="section-title"><span class="eyebrow">REFERENCES</span><h2>References and <em>reproducibility.</em></h2></div>
+ <div class="stack">
+ <div class="callout">
+ <h3>Reproduce the reported measures</h3>
+ <p>The repository README’s build instructions describe model training, calibration and export. Run the comparison from the v2 checkpoint and original single-view INT8 export using <code>training/benchmark_reflection.py</code>. Preserve split, checkpoint, cutoffs, device and runtime. For a physical run, match <code>part,truth</code> labels to the exported rear-camera records.</p>
+ <code class="code">python training/score_fixture.py part-labels.csv surfacenet-inspections.csv</code>
+ </div>
+ <p class="small">The editable package includes <code>edge-benchmark.json</code> and <code>reflection-edge.json</code> for optimization, profile and lighting experiments, <code>reflection-review.json</code> for review calibration, and <code>jury-live-timings.json</code> for emulator capture timing.</p>
+ <ol class="refs">
+  <li>Arm Education. <a href="https://arm-education.github.io/Arm-Developer-Labs/Bharat_AI_SoC_2026_27.html">Bharat AI-SoC Challenge 2026–27</a>.</li>
+  <li>Božič, J., Tabernik, D. &amp; Skočaj, D. (2021). <a href="https://doi.org/10.1016/j.compind.2021.103459">Mixed supervision for surface-defect detection</a>. <i>Computers in Industry</i>, 129, 103459.</li>
+  <li>University of Ljubljana, ViCoS. <a href="https://www.vicos.si/resources/kolektorsdd2/">Kolektor Surface-Defect Dataset 2</a>. Dataset and usage terms.</li>
+  <li>Batzner, K., Heckler, L. &amp; König, R. (2024). <a href="https://openaccess.thecvf.com/content/WACV2024/html/Batzner_EfficientAD_Accurate_Visual_Anomaly_Detection_at_Millisecond-Level_Latencies_WACV_2024_paper.html">EfficientAD</a>. <i>IEEE/CVF WACV</i>.</li>
+  <li>Heckler-Kram, L. et al. (2026). <a href="https://doi.org/10.1007/s11263-026-02743-0">The MVTec AD 2 Dataset</a>. <i>International Journal of Computer Vision</i>, 134, 175.</li>
+  <li>Open Edge Platform. <a href="https://github.com/open-edge-platform/anomalib">Anomalib</a>. Open-source visual anomaly detection.</li>
+  <li>PyTorch. <a href="https://docs.pytorch.org/executorch/1.5/llm/run-on-android.html">Running an LLM on Android</a>. ExecuTorch 1.5 docs.</li>
+  <li>Android Developers. <a href="https://developer.android.com/media/camera/camerax/analyze">CameraX image analysis</a>.</li>
+  <li>Android Developers. <a href="https://developer.android.com/reference/android/hardware/camera2/CameraMetadata#SENSOR_INFO_TIMESTAMP_SOURCE_REALTIME">Camera sensor time source</a>.</li>
+  <li>iQOO India. <a href="https://www.iqoo.com/in/products/param/Z9spro">Z9s Pro 5G specifications</a>.</li>
+  <li>Cognex. <a href="https://support.cognex.com/en/products/in-sight-d900">In-Sight D900 documentation</a>.</li>
+  <li>KEYENCE. <a href="https://www.keyence.com/products/sensor/vision-sensor/iv3/specs/">IV3 series specifications</a>.</li>
+  <li>LandingAI. <a href="https://support.landing.ai/docs/deployment-options">LandingLens deployment options</a>.</li>
+  <li>Robu.in. <a href="https://robu.in/product/metal-phone-holder/">Metal phone holder</a> and <a href="https://robu.in/product/arducam-ub0244-adjustable-mini-tripod-stand/">Arducam mini tripod</a>.</li>
+  <li>IKEA India. <a href="https://www.ikea.com/in/en/p/brunbage-led-work-lamp-with-storage-dimmable-turquoise-30542162/">BRUNBÅGE LED work lamp</a>.</li>
+  <li>Site of Sites. <a href="https://www.siteofsites.co/">Curated design and editorial reference</a>.</li>
+  <li>ExecuTorch Community. <a href="https://huggingface.co/executorch-community/Llama-3.2-1B-Instruct-SpinQuant_INT4_EO8-ET/tree/911221e0f49d3354cbd4697a9c09feee25cadec7">Llama 3.2 1B SpinQuant export</a>. Pinned model and tokenizer.</li>
+  <li>ONNX Runtime. <a href="https://onnxruntime.ai/docs/tutorials/web/deploy.html">Deploying ONNX Runtime Web applications</a>.</li>
+  <li>Bae, J., Lee, J.-H. &amp; Kim, S. (2023). <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Bae_PNI__Industrial_Anomaly_Detection_using_Position_and_Neighborhood_Information_ICCV_2023_paper.pdf">PNI: Industrial Anomaly Detection using Position and Neighborhood Information</a>. <i>IEEE/CVF ICCV</i>.</li>
+  <li>Geifman, Y. &amp; El-Yaniv, R. (2017). <a href="https://proceedings.neurips.cc/paper/2017/hash/4a8423d5e91fda00bb7e46540e2b0cf1-Abstract.html">Selective Classification for Deep Neural Networks</a>. <i>NeurIPS</i>, 30.</li>
+  <li>PyTorch. <a href="https://docs.pytorch.org/executorch/1.5/backends/xnnpack/xnnpack-quantization.html">XNNPACK quantization</a>. ExecuTorch 1.5 docs.</li>
+  <li>Raspberry Pi. <a href="https://www.raspberrypi.com/products/raspberry-pi-5/">Pi 5 specifications</a> and <a href="https://www.raspberrypi.com/documentation/accessories/camera-software.html">camera installation and Picamera2</a>.</li>
+  <li>PyTorch. <a href="https://docs.pytorch.org/executorch/1.5/raspberry_pi_llama_tutorial.html">ExecuTorch on Raspberry Pi</a>. ExecuTorch 1.5 docs.</li>
+  <li>Robu.in. <a href="https://robu.in/product-category/raspberry-pi-5/">Pi 5 boards</a> and <a href="https://robu.in/product-category/raspberry-pi-displays/">camera and ribbon cable listings</a>.</li>
+  <li>Robu.in and Thingbits. <a href="https://robu.in/product-category/raspberry-pi-power-supplies-and-cables/">27 W supply</a>, <a href="https://robu.in/product-category/memory-cards/">64 GB Kingston microSD</a> and <a href="https://www.thingbits.in/products/official-active-cooler-for-raspberry-pi-5">active cooler</a>.</li>
+  <li>Liu, Z. et al. (2025). <a href="https://arxiv.org/abs/2405.16406">SpinQuant</a>. <i>ICLR</i>.</li>
+  <li>PyTorch. <a href="https://docs.pytorch.org/executorch/1.5/desktop-xnnpack.html">XNNPACK CPU backend</a>. ExecuTorch 1.5 docs.</li>
+ </ol>
+ <div class="box"><h3>Figure credits</h3><p class="small">Product plates are SurfaceNet screenshots. The cover and Figure 8 use derivatives of Kolektor Group imagery supplied through ViCoS Lab under CC BY-NC-SA 4.0. The layout takes editorial cues from Site of Sites. [3,16]</p></div>
+ </div>
+</section>
+</main>
+<script>
+const pages = [...document.querySelectorAll('.page')];
+pages.forEach((page, index) => {
+  if (page.classList.contains('cover')) return;
+
+  const head = document.createElement('header');
+  head.className = 'running';
+  head.innerHTML = '<span class="mark"><img src="assets/logo.png" alt="">SurfaceNet</span>';
+  const label = document.createElement('span');
+  label.textContent = page.dataset.label;
+  head.append(label);
+  page.prepend(head);
+
+  const foot = document.createElement('footer');
+  foot.className = 'folio';
+  const pageNumber = String(index + 1).padStart(2, '0');
+  foot.innerHTML = '<span>Bharat AI-SoC · PS5</span><span>' + pageNumber + ' / ' + pages.length + '</span>';
+  page.append(foot);
+});
+</script>
+</body>
+</html>

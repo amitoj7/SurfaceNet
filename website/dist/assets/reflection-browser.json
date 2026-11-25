@@ -1,0 +1,117 @@
+{
+  "baseline": {
+    "dataset": "KolektorSDD2",
+    "width": 96,
+    "height": 256,
+    "threshold": 0.9803669452667236,
+    "epochs": 32,
+    "seed": 184,
+    "training_device": "mps",
+    "train_images": 1865,
+    "training_positives": 197,
+    "parameters": 49505,
+    "pte_bytes": 208644,
+    "export_max_abs_error": 3.528594970703125e-05,
+    "pixel_average_precision": 0.6502,
+    "demo_specimens": {
+      "clean": "20500.png",
+      "defect": "20042.png"
+    },
+    "validation": {
+      "images": 466,
+      "positives": 49,
+      "negatives": 417,
+      "auroc": 0.9527,
+      "average_precision": 0.8822,
+      "recall": 0.8163,
+      "false_alert_rate": 0.0192,
+      "tp": 40,
+      "fp": 8,
+      "tn": 409,
+      "fn": 9
+    },
+    "official_test": {
+      "images": 1004,
+      "positives": 110,
+      "negatives": 894,
+      "auroc": 0.9557,
+      "average_precision": 0.8788,
+      "recall": 0.7909,
+      "false_alert_rate": 0.0179,
+      "tp": 87,
+      "fp": 16,
+      "tn": 878,
+      "fn": 23
+    }
+  },
+  "deployed": {
+    "dataset": "KolektorSDD2",
+    "architecture": "v2 \u00b7 4 views",
+    "width": 96,
+    "height": 256,
+    "threshold": 0.31507396697998047,
+    "epochs": 40,
+    "seed": 184,
+    "training_device": "mps",
+    "train_images": 1865,
+    "training_positives": 197,
+    "parameters": 124455,
+    "pte_bytes": 518276,
+    "export_max_abs_error": 1.33514404296875e-05,
+    "pixel_average_precision": 0.6568,
+    "demo_specimens": {
+      "clean": "20494.png",
+      "defect": "20535.png"
+    },
+    "validation": {
+      "images": 466,
+      "positives": 49,
+      "negatives": 417,
+      "auroc": 0.9887,
+      "average_precision": 0.9448,
+      "recall": 0.898,
+      "false_alert_rate": 0.0192,
+      "tp": 44,
+      "fp": 8,
+      "tn": 409,
+      "fn": 5,
+      "pixel_ap": 0.7611,
+      "threshold": 0.31507396697998047
+    },
+    "official_test": {
+      "images": 1004,
+      "positives": 110,
+      "negatives": 894,
+      "auroc": 0.9716,
+      "average_precision": 0.9196,
+      "recall": 0.8636,
+      "false_alert_rate": 0.0291,
+      "tp": 95,
+      "fp": 26,
+      "tn": 868,
+      "fn": 15,
+      "pixel_ap": 0.6568,
+      "threshold": 0.31507396697998047
+    },
+    "context_weight": 0.25
+  },
+  "onnx_max_error": 2.47955322265625e-05,
+  "onnx_sha256": "62de085db98ea2c95592123c96398848c845267fa30927c6f2bd2679169c1315",
+  "paired": {
+    "defective": {
+      "images": 110,
+      "initial": 95,
+      "confirmed": 85,
+      "box_confirmed": 91,
+      "usable": 110
+    },
+    "clean": {
+      "images": 894,
+      "initial": 26,
+      "confirmed": 13,
+      "box_confirmed": 15,
+      "usable": 893
+    }
+  },
+  "scope": "One controlled simulated alternate capture per official test image"
+}

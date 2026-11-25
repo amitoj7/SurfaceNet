@@ -1,0 +1,100 @@
+{
+  "host": {
+    "cpu": "Apple M3",
+    "os": "Darwin 25.6.0",
+    "runtime": "ExecuTorch 1.5.0 / XNNPACK",
+    "scope": "Warm single-ROI forward call"
+  },
+  "calibration_images": 384,
+  "int8_release_gate_passed": true,
+  "variants": [
+    {
+      "precision": "FP32",
+      "bytes": 514180,
+      "threshold": 0.5711715817451477,
+      "validation": {
+        "images": 466,
+        "positives": 49,
+        "negatives": 417,
+        "auroc": 0.9789,
+        "average_precision": 0.914,
+        "recall": 0.7959,
+        "false_alert_rate": 0.0192,
+        "tp": 39,
+        "fp": 8,
+        "tn": 409,
+        "fn": 10
+      },
+      "p50_ms": 1.729,
+      "p95_ms": 1.957,
+      "runs": 120,
+      "official_test": {
+        "images": 1004,
+        "positives": 110,
+        "negatives": 894,
+        "auroc": 0.9711,
+        "average_precision": 0.9054,
+        "recall": 0.8091,
+        "false_alert_rate": 0.0145,
+        "tp": 89,
+        "fp": 13,
+        "tn": 881,
+        "fn": 21
+      },
+      "pixel_average_precision": 0.726,
+      "sha256": "f3a292d8bbbe5844a8028be0ca546d9c07029b01cfd95efb83c1d1bd569a8c1b"
+    },
+    {
+      "precision": "INT8",
+      "bytes": 157060,
+      "threshold": 0.4533120095729828,
+      "validation": {
+        "images": 466,
+        "positives": 49,
+        "negatives": 417,
+        "auroc": 0.9755,
+        "average_precision": 0.9082,
+        "recall": 0.8163,
+        "false_alert_rate": 0.0192,
+        "tp": 40,
+        "fp": 8,
+        "tn": 409,
+        "fn": 9
+      },
+      "p50_ms": 0.931,
+      "p95_ms": 1.103,
+      "runs": 120,
+      "official_test": {
+        "images": 1004,
+        "positives": 110,
+        "negatives": 894,
+        "auroc": 0.9729,
+        "average_precision": 0.9148,
+        "recall": 0.8273,
+        "false_alert_rate": 0.0145,
+        "tp": 91,
+        "fp": 13,
+        "tn": 881,
+        "fn": 19
+      },
+      "pixel_average_precision": 0.7345,
+      "sha256": "56f6a8daa99449118b62dbbc93fde519adbc15c477c86814738fcd3951ea0a92"
+    }
+  ],
+  "paired_int8": {
+    "defective": {
+      "images": 110,
+      "initial": 91,
+      "confirmed": 74,
+      "box_confirmed": 81,
+      "usable": 110
+    },
+    "clean": {
+      "images": 894,
+      "initial": 13,
+      "confirmed": 4,
+      "box_confirmed": 6,
+      "usable": 893
+    }
+  }
+}

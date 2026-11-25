@@ -1,0 +1,16 @@
+.DS_Store
+.gradle/
+**/build/
+local.properties
+android/app/libs/
+.venv/
+__pycache__/
+datasets/
+checkpoints/
+models/
+
+website/effects/node_modules/
+website/.openai/
+output/website/*.zip
+output/pdf/*.zip
+output/walkthrough/SurfaceNet-Walkthrough*

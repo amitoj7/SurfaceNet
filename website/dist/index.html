@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SurfaceNet is an offline industrial defect inspection and quality-control assistant for Bharat AI-SoC PS5. Download the Arm64 Android app and run the PS5 workflow on your phone.">
+  <meta name="theme-color" content="#f4f2ed">
+  <meta name="robots" content="noindex">
+  <title>SurfaceNet — Offline industrial inspection</title>
+  <link rel="icon" href="./assets/surfacenet-logo.png" type="image/png">
+  <link rel="stylesheet" href="./field.css">
+  <link rel="stylesheet" href="./optical.css">
+  <link rel="stylesheet" href="./edition.css">
+  <link rel="stylesheet" href="./vendor/hero-splash.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#live">Skip to inspection</a>
+  <header class="masthead">
+    <div class="measure mast-inner">
+      <a class="brand" href="#top" aria-label="SurfaceNet home"><img class="brand-logo" src="./assets/surfacenet-logo.png" width="32" height="32" alt="">SurfaceNet</a>
+      <nav aria-label="Primary"><a href="#live" aria-label="Live camera">Live<span class="nav-camera-word"> camera</span></a><a href="#lab">Specimens</a><a href="#results">Evidence</a></nav>
+      <a class="nav-download" href="#android">Get the APK <span aria-hidden="true">↓</span></a>
+    </div>
+    <div class="reading-progress" aria-hidden="true"></div>
+  </header>
+
+  <main id="top">
+    <section class="edition-cover" aria-labelledby="cover-title">
+      <div class="splash-field splash-field--hero" aria-hidden="true"></div>
+      <div class="measure cover-grid">
+        <div class="cover-copy">
+          <p class="series">Bharat AI-SoC PS5 · Manufacturing</p>
+          <h1 id="cover-title">Surface inspection.<br><em>On device.</em></h1>
+          <p>Find surface defects in real time. On Android, verify a held finding under a second light and save the evidence with offline Llama guidance.</p>
+          <div class="cover-actions">
+            <a class="button primary action-shift" href="#live"><span class="action-window"><span>Use live camera<span aria-hidden="true">Use live camera</span></span></span><span class="action-mark" aria-hidden="true">↘</span></a>
+            <a class="button action-shift" href="#android"><span class="action-window"><span>Get the Android app<span aria-hidden="true">Get the Android app</span></span></span><span class="action-mark" aria-hidden="true">↓</span></a>
+          </div>
+          <a class="cover-demo" href="#lab">Explore a recorded inspection <span aria-hidden="true">↗</span></a>
+        </div>
+        <figure class="cover-figure">
+          <div class="cover-art">
+            <img src="./assets/inspection-ring.webp" width="1510" height="1007" alt="Illustration of a machined metal ring with a scratch on its outer face" fetchpriority="high">
+            <span class="art-glint" aria-hidden="true"></span>
+            <span class="art-scan" aria-hidden="true"></span>
+            <span class="art-target" aria-hidden="true"></span>
+          </div>
+          <figcaption><span>Machined surface</span><span>Illustration</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="measure method" id="live" aria-labelledby="live-title">
+      <div class="chapter-head live-heading">
+        <div><p class="series">On-device browser vision</p><h2 id="live-title">Live <em>camera.</em></h2></div>
+        <p>Place a part inside the outline. Freeze a finding to save it with a part ID. Camera frames stay in the browser.</p>
+      </div>
+      <div class="camera-console">
+        <div class="camera-console-head">
+          <span class="console-reticle" aria-hidden="true"></span>
+          <p id="camera-status" role="status">Camera off. Select Start live camera to request access.</p>
+        </div>
+        <div class="camera-controls"><button id="camera-toggle" class="button primary" type="button" disabled>Start live camera</button><button id="camera-freeze" class="button" type="button" hidden>Freeze inspection</button></div>
+        <div id="camera-stage" class="camera-stage" hidden>
+          <video id="camera-video" aria-label="Live inspection camera preview" autoplay muted playsinline></video>
+          <canvas id="camera-still" aria-label="Frozen inspection crop" width="96" height="256" hidden></canvas>
+          <canvas id="camera-mask" aria-hidden="true" width="96" height="256"></canvas>
+        </div>
+        <p id="camera-evidence" class="camera-evidence" hidden></p>
+        <form id="camera-record" class="camera-record" hidden>
+          <label>Part or lot ID <input id="camera-part" name="part" maxlength="64" placeholder="e.g. Part 004" required></label>
+          <button class="button" type="submit">Save inspection</button>
+        </form>
+        <details id="camera-trace" class="camera-trace">
+          <summary>Saved inspections <span id="camera-record-count"></span></summary>
+          <ul id="camera-records"></ul>
+        </details>
+      </div>
+    </section>
+
+    <section id="lab" class="register" aria-labelledby="lab-title">
+      <div class="measure">
+      <div class="lab" id="lab-shell" aria-busy="true">
+        <div class="lab-stage">
+        <div class="register-head">
+          <p class="series">KolektorSDD2 · Held-out specimens</p>
+          <h2 id="lab-title">Read the <em>surface.</em></h2>
+          <p class="intro">Compare two exposures and see which defect pixels agree.</p>
+          <button type="button" id="run" class="button primary" disabled>Run lighting check</button>
+          <a href="#decision" id="run-feedback" hidden></a>
+          <details class="replay-options"><summary>Detector options</summary>
+            <label class="profile-pick" for="vision-profile">Browser model <select id="vision-profile" disabled><option value="single">Single view</option><option value="reflection">Four views</option></select></label>
+          </details>
+        </div>
+
+        <div class="workbench">
+          <div class="plate-toolbar">
+            <div>
+              <p class="plate-source" id="case-source">KolektorSDD2</p>
+              <h2 id="case-title">Loading specimen</h2>
+            </div>
+            <div class="plate-toggle" aria-label="Capture layout">
+              <button type="button" id="wipe-mode" data-layout="wipe" aria-pressed="true">Wipe</button>
+              <button type="button" id="split-mode" data-layout="split" aria-pressed="false">Side by side</button>
+            </div>
+          </div>
+
+          <figure class="plate" id="plate" data-layout="wipe">
+            <div class="fiducials" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="wipe" id="wipe-panel" style="--position:54%">
+              <canvas width="1024" height="384" id="wipe-ambient" aria-label="Ambient capture"></canvas>
+              <canvas width="1024" height="384" id="wipe-relit" aria-label="Alternate capture"></canvas>
+              <span class="exposure left">A / Ambient</span><span class="exposure right">B / Altered light</span>
+              <div class="wipe-seam" aria-hidden="true"><span>‹ ›</span></div>
+              <label class="visually-hidden" for="exposure-split">Exposure split</label>
+              <input type="range" id="exposure-split" min="0" max="100" value="54" aria-valuetext="54% ambient exposure">
+            </div>
+            <div class="captures" id="split-panel" hidden>
+              <article class="capture">
+                <div class="capture-label"><span>A / Ambient</span><strong id="ambient-score">—</strong></div>
+                <div class="frame"><canvas width="512" height="192" id="ambient" aria-label="Ambient crop"></canvas></div>
+                <p id="ambient-caption">Original held-out capture</p>
+              </article>
+              <article class="capture">
+                <div class="capture-label"><span>B / Altered light</span><strong id="relit-score">—</strong></div>
+                <div class="frame"><canvas width="512" height="192" id="relit" aria-label="Altered-light crop"></canvas></div>
+                <p id="relit-caption">Controlled relight and shift</p>
+              </article>
+            </div>
+            <figcaption class="plate-caption"><span id="plate-registration">Captured position</span><span id="capture-origin">KolektorSDD2 · Simulated second exposure</span></figcaption>
+          </figure>
+
+          <div class="actions">
+            <div class="layer" id="layers" aria-label="Image overlay">
+              <button type="button" data-layer="raw" aria-pressed="true">Image</button>
+              <button type="button" data-layer="model" aria-pressed="false">Model mask</button>
+              <button type="button" data-layer="agreement" aria-pressed="false" id="agreement-toggle" disabled>Agreement</button>
+              <button type="button" data-layer="truth" aria-pressed="false" id="truth-toggle">Annotation</button>
+            </div>
+          </div>
+          <p id="agreement-legend" class="agreement-legend" hidden><span>Corroborated pixels</span><span>Unsupported pixels</span></p>
+        </div>
+        </div>
+
+        <aside class="specimen-index" aria-label="Specimen index">
+          <div class="index-head">Specimens</div>
+          <div class="cases" id="cases" aria-label="Inspection specimens"></div>
+          <label class="file-button"><span>Load your own pair <span aria-hidden="true">↗</span></span><input id="upload" type="file" aria-label="Load your own pair" accept="image/*" multiple></label>
+        </aside>
+        <p id="case-note" class="footnote specimen-foot">Loading specimen notes.</p>
+          <div id="decision" class="readout" aria-labelledby="readout-title">
+            <div>
+              <p id="readout-title" class="series">Decision record</p>
+              <div id="verdict" class="verdict" aria-live="polite">Awaiting inspection</div>
+              <p id="explanation">The run reports alignment, light change, and pixel support in each direction.</p>
+              <button type="button" id="local-trace" class="text-button" disabled>Export evidence <span aria-hidden="true">↓</span></button>
+            </div>
+            <div>
+              <ol class="workflow" id="workflow" aria-label="Inspection progress" data-phase="ready">
+                <li data-step="loading">Load</li><li data-step="segment">Segment</li><li data-step="compare">Compare</li><li data-step="result">Result</li>
+              </ol>
+              <dl id="inspection-measurements" class="measurements" hidden>
+                <div><dt>Surface score A / B</dt><dd id="surface-scores">—</dd></div>
+                <div><dt>Finding shape</dt><dd id="shape">—</dd></div>
+                <div><dt>Severity proxy</dt><dd id="severity">—</dd></div>
+                <div><dt>Registration</dt><dd id="registration">—</dd></div>
+                <div><dt>Light change</dt><dd id="light">—</dd></div>
+                <div><dt>Pixel support A / B</dt><dd id="overlap">—</dd></div>
+              </dl>
+              <p id="runtime" class="runtime" role="status">Preparing browser runtime</p>
+            </div>
+          </div>
+      </div>
+      </div>
+    </section>
+
+    <section class="measure method" id="method" aria-labelledby="method-title">
+      <div class="chapter-head">
+        <div><p class="series">The PS5 workflow</p><h2 id="method-title">From finding <em>to record.</em></h2></div>
+        <p>The Android app runs SurfaceNet vision and Llama 3.2 1B through ExecuTorch on the Arm CPU.</p>
+      </div>
+      <ol class="protocol">
+        <li><strong>Inspect.</strong><p>Use the rear camera to localize defects and see their type and estimated severity.</p></li>
+        <li><strong>Act.</strong><p>Review an alert, freeze the evidence, and ask local Llama for an operator action.</p></li>
+        <li><strong>Record.</strong><p>Save the part ID, images, masks, decision, and advisory source in the trace log.</p></li>
+      </ol>
+    </section>
+
+    <section class="results" id="results" aria-labelledby="results-title">
+      <div class="measure">
+        <div class="chapter-head">
+          <div><p class="series">Validation record</p><h2 id="results-title">Measured <em>performance.</em></h2></div>
+          <p>Four-view Android INT8 results on 1,004 held-out KolektorSDD2 images. See the full benchmark for the model comparison and simulated lighting study.</p>
+        </div>
+        <div class="headline-stats" aria-label="Four-view Android INT8 test results">
+          <p><strong id="hero-auc">—</strong><span>Image AUROC</span></p>
+          <p><strong id="hero-recall">—</strong><span>Defects sent to alert or review</span></p>
+          <p><strong id="hero-size">—</strong><span>Vision program size</span></p>
+        </div>
+        <details class="evidence-disclosure">
+          <summary>Benchmarks and reports</summary>
+          <div class="evidence-content">
+            <div class="performance-plot" id="comparison" hidden>
+              <div class="plot-heading">
+                <div><p class="series">1,004 official test images</p><h3>Precision and recall</h3></div>
+                <p id="curve-summary" class="footnote"></p>
+              </div>
+              <div class="plot-stage">
+                <canvas id="precision-curve" role="img" aria-label="Precision-recall curve comparing the two Android INT8 models"></canvas>
+                <div class="plot-key" aria-hidden="true"><span>Four views</span><span>Single view</span></div>
+              </div>
+              <label class="plot-slider"><span>Inspect recall</span><input id="recall-slider" type="range" min="0" max="100" value="82"><output id="recall-cursor" for="recall-slider">82%</output></label>
+              <p id="curve-readout" class="footnote"></p>
+            </div>
+            <div class="results-grid">
+              <article>
+                <h3>Android INT8 accuracy</h3>
+                <table><thead><tr><th scope="col">Metric</th><th scope="col">Single view</th><th scope="col">Four views</th></tr></thead><tbody id="benchmark-rows"></tbody></table>
+              </article>
+              <article>
+                <h3>CPU profile</h3>
+                <table><thead><tr><th scope="col">Metric</th><th scope="col">Single view</th><th scope="col">Four views</th></tr></thead><tbody id="edge-rows"></tbody></table>
+                <p id="edge-context" class="footnote">Loading CPU profile.</p>
+              </article>
+            </div>
+            <div class="relight-report">
+              <div><h3>Review threshold</h3><p class="footnote">Four-view INT8 · single-frame scores</p></div>
+              <div><table><thead><tr><th scope="col">Disposition</th><th scope="col">Alert cutoff only</th><th scope="col">With review band</th></tr></thead><tbody id="review-rows"></tbody></table><p id="review-context" class="footnote"></p></div>
+            </div>
+            <div class="relight-report">
+              <h3>Simulated relighting</h3>
+              <div><div id="stress-chart" class="bars"></div><p id="stress-note" class="footnote"></p><p id="edge-pairs" class="footnote"></p></div>
+            </div>
+            <div class="references">
+              <a href="./assets/benchmark.json" download>Detector data ↓</a>
+              <a href="./assets/edge-benchmark.json" download>Edge benchmark ↓</a>
+              <a href="./assets/reflection-edge.json" download>Profile comparison ↓</a>
+              <a href="./assets/reflection-review.json" download>Four-view review calibration ↓</a>
+              <a href="./assets/SurfaceNet-PS5-Technical-and-Venture-Report.pdf" target="_blank" rel="noopener">Full technical report (PDF) ↗</a>
+              <a href="./assets/SurfaceNet-Evidence-Brief.pdf" download>PDF brief ↓</a>
+              <a href="https://www.vicos.si/resources/kolektorsdd2/">Dataset and attribution</a>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="android" class="android" aria-labelledby="android-title">
+      <div class="splash-field" id="hero-fluid" aria-hidden="true"></div>
+      <div class="measure android-body">
+        <div class="android-copy">
+          <p class="series">Arm64 Android</p>
+          <h2 id="android-title">Inspect <em>offline.</em></h2>
+          <p class="device-proof">Run INT8 vision and Llama 3.2 1B on the phone with ExecuTorch. Save inspection records locally.</p>
+          <div class="download-actions"><a class="button primary action-shift" href="./assets/surfaceguard.apk" download="SurfaceNet-0.7.4.apk"><span class="action-window"><span>Download APK<span aria-hidden="true">Download APK</span></span></span></a><span class="release-meta">v0.7.4 · 18 MB</span></div>
+          <details class="setup-disclosure">
+            <summary>Set up camera and offline Llama</summary>
+            <ol class="setup-steps">
+              <li><strong>Install the APK.</strong><p>Open the downloaded file on the phone. If Android prompts you, allow the app you opened it from to install it. Grant camera access when starting live inspection.</p></li>
+              <li><strong>Load Llama before going offline.</strong><p>Download both files while connected. In SurfaceNet, open <b>Device → Manage model files</b> and import each file using its matching picker.</p>
+                <div class="model-downloads"><a href="https://huggingface.co/executorch-community/Llama-3.2-1B-Instruct-SpinQuant_INT4_EO8-ET/resolve/911221e0f49d3354cbd4697a9c09feee25cadec7/Llama-3.2-1B-Instruct-SpinQuant_INT4_EO8.pte?download=true">Llama model · 1.14 GB ↓</a><a href="https://huggingface.co/executorch-community/Llama-3.2-1B-Instruct-SpinQuant_INT4_EO8-ET/resolve/911221e0f49d3354cbd4697a9c09feee25cadec7/tokenizer.model?download=true">Tokenizer · 2.2 MB ↓</a></div>
+                <p>Allow about 2.5 GB of free space for the downloads and app copies. The APK includes the vision model.</p></li>
+              <li><strong>Verify the full PS5 loop.</strong><p>Turn on airplane mode and switch Wi-Fi off. Open <b>Inspect → Specimens → Annotated defect</b>, choose <b>Ask local Llama</b>, then enter a part ID, save, and reopen the result from <b>Trace log</b>. The advice should show <b>Llama 3.2 1B · ExecuTorch / XNNPACK</b>.</p></li>
+              <li><strong>Inspect a fixtured part.</strong><p>Fix the phone in place, open <b>Rear camera</b>, and use <b>Enroll clean</b> with a verified clean reference. For a stable hold, use <b>Verify with rear light</b>. Open <b>Device</b> to export live timings or run the model benchmark.</p></li>
+            </ol>
+          </details>
+        </div>
+        <figure class="device-figure">
+          <img src="./assets/android-inspection.png" alt="SurfaceNet for Android showing a defect specimen and the rear-camera control" width="1080" height="2400" loading="lazy" decoding="async">
+          <figcaption>SurfaceNet for Android · Recorded specimen</figcaption>
+        </figure>
+      </div>
+    </section>
+
+  </main>
+  <footer class="measure footer"><a class="brand" href="#top"><img class="brand-logo" src="./assets/surfacenet-logo.png" width="32" height="32" alt="">SurfaceNet</a><span>Bharat AI-SoC · Problem Statement 5</span><span>Built with Llama</span></footer>
+</body>
+</html>

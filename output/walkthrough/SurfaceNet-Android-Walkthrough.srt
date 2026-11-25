@@ -1,0 +1,73 @@
+1
+00:00:00,320 --> 00:00:05,545
+Can a phone flag a defect and tell an operator
+what to do? Here’s SurfaceNet, working offline.
+
+2
+00:00:06,167 --> 00:00:11,196
+In Inspect, open Rear camera. A mounted phone
+can enroll a clean part as its reference.
+
+3
+00:00:11,336 --> 00:00:15,582
+The app checks image quality and asks
+for a new capture if detail is too low.
+
+4
+00:00:16,200 --> 00:00:18,981
+Open the annotated defect. The app highlights the
+
+5
+00:00:18,981 --> 00:00:22,109
+mark, estimates its severity,
+and sends it to review.
+
+6
+00:00:22,733 --> 00:00:27,062
+For a live hold, the rear light can test
+whether the same defect pixels persist.
+
+7
+00:00:27,202 --> 00:00:32,930
+Here, the phone replay uses simulated lighting.
+Drag the divider to compare the registered captures.
+
+8
+00:00:33,533 --> 00:00:39,208
+Tap Ask local Llama. Llama 3.2 runs
+on the Arm CPU through ExecuTorch.
+
+9
+00:00:39,348 --> 00:00:43,687
+For this mark, it recommends keeping the
+part segregated and checking pit depth.
+
+10
+00:00:44,300 --> 00:00:49,975
+Enter the part ID and save. Trace log reopens
+the mask, finding and Llama recommendation.
+
+11
+00:00:50,115 --> 00:00:53,385
+Records stay on the device
+and can be exported as CSV.
+
+12
+00:00:54,000 --> 00:00:59,030
+Under Device, compare both vision profiles
+and export separate live-camera timings.
+
+13
+00:00:59,633 --> 00:01:07,716
+Across 1,004 held-out images, four-view
+INT8 reached 97.45% image AUROC.
+
+14
+00:01:07,856 --> 00:01:14,997
+Both profiles flagged 105 of 110 defects.
+Four views flagged 35 fewer clean images.
+
+15
+00:01:15,600 --> 00:01:20,400
+Next we validate sustained throughput and
+rear-light repeatability on the physical handset.

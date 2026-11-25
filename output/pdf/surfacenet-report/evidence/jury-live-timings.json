@@ -1,0 +1,16 @@
+{
+  "recorded_at": "2026-11-25T16:25:05.934817Z",
+  "device": "Android SDK built for arm64",
+  "sdk": 35,
+  "profile": "Single view INT8",
+  "scope": "Rolling CameraX analyzer samples to computed decision; excludes screen rendering and torch checks",
+  "frames": 192,
+  "duration_seconds": 21.559476593,
+  "decisions_per_second": 8.85921321772786,
+  "analyzer_p50_ms": 3.223209,
+  "analyzer_p95_ms": 4.833709,
+  "sensor_frames": 0,
+  "sensor_p50_ms": null,
+  "sensor_p95_ms": null,
+  "thermal_status": 0
+}

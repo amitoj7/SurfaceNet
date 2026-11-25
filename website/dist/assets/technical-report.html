@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SurfaceNet — Technical evidence brief</title>
+<style>
+@font-face{font-family:Instrument;src:url("../vendor/instrument-serif.woff2") format("woff2");font-display:swap}
+@font-face{font-family:Space;src:url("../vendor/space-grotesk.woff2") format("woff2");font-weight:300 700;font-display:swap}
+*{box-sizing:border-box}html{background:#dbd8cc}body{max-width:940px;margin:32px auto;padding:clamp(22px,5vw,58px);background:#f4f3ec;color:#24251f;font:400 15px/1.46 Space,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid;padding-bottom:12px;font-size:13px}
+header img{width:32px;height:32px;object-fit:contain;vertical-align:middle;margin-right:7px}header strong{font-size:18px;letter-spacing:-.055em}a{color:inherit;text-underline-offset:3px}
+h1,h2,p{margin:0}h1,h2{font:400 1rem/1 Instrument,Georgia,serif}h1{font-size:clamp(66px,12vw,130px);letter-spacing:-.045em;margin:24px 0 10px}h2{font-size:32px;margin:15px 0 5px}
+.intro{max-width:620px;margin-bottom:19px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);border-block:1px solid #24251f;gap:14px;padding:8px 0 9px}
+.metrics strong{display:block;font:400 clamp(40px,6vw,65px)/1 Instrument,Georgia,serif;color:#963625}
+.metrics span{font-size:.83em}table{width:100%;border-collapse:collapse;margin:4px 0 8px}th,td{padding:5px 4px;border-bottom:1px solid #bdbbb1;text-align:right}
+th:first-child{text-align:left}th[scope=row]{font-weight:500}thead{font-size:12px}small{display:block;color:#4a4b40;font-size:12px;margin-top:7px}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:14px 22px}footer{border-top:1px solid;margin-top:18px;padding-top:9px;font-size:12px;display:flex;gap:15px;flex-wrap:wrap}
+@media(max-width:560px){body{margin:0}.metrics{gap:7px}.metrics strong{font-size:clamp(31px,9vw,50px)}.notes{grid-template-columns:1fr}table{font-size:13px}}
+@media print{@page{size:A4;margin:13mm}html,body{margin:0;padding:0;background:white}body{font-size:12px}h1{font-size:77px;margin-top:14px}.metrics strong{font-size:46px}h2{font-size:26px}.notes{gap:5px 12px}}
+</style>
+</head>
+<body>
+<header><strong><img src="surfacenet-logo.png" alt="">SurfaceNet</strong><span>Bharat AI-SoC · PS5</span></header>
+<main>
+<h1>The second light.</h1>
+<p class="intro">SurfaceNet runs two offline INT8 defect profiles on Arm Android. An operator can change the light with the rear torch and compare registered defect masks before recording a decision. Llama 3.2 provides the operator procedure through ExecuTorch on the same device.</p>
+<div class="metrics">
+<p><strong>97.45%</strong><span>Four-view image AUROC</span></p>
+<p><strong>96 / 110</strong><span>Defective images alerted</span></p>
+<p><strong>159 KiB</strong><span>Four-view INT8 program</span></p>
+</div>
+<h2>Official KolektorSDD2 test split</h2>
+<table>
+<thead><tr><th scope="col">Measured result</th><th scope="col">Single-view INT8</th><th scope="col">Four-view INT8</th></tr></thead>
+<tbody>
+<tr><th scope="row">Image average precision</th><td>91.48%</td><td>92.36%</td></tr>
+<tr><th scope="row">Pixel average precision</th><td>73.45%</td><td>69.16%</td></tr>
+<tr><th scope="row">Defect alerts · 110 defects</th><td>91</td><td>96</td></tr>
+<tr><th scope="row">Clean alerts · 894 clean images</th><td>13</td><td>24</td></tr>
+<tr><th scope="row">Defects sent to alert or review</th><td>105</td><td>105</td></tr>
+<tr><th scope="row">Clean images sent to alert or review</th><td>165</td><td>130</td></tr>
+<tr><th scope="row">Warm forward p95 · Apple M3 CPU</th><td>1.06 ms</td><td>6.63 ms</td></tr>
+</tbody>
+</table>
+<small>Four-view thresholds and context weight were selected on 466 training-validation images. Each profile was timed over 120 warmed forwards. The counts represent single-image scores. Live Android additionally uses fixture, temporal and reference checks.</small>
+<div class="notes">
+<section><h2>Why four views</h2><p>The program flips the same exposure across both axes, runs one batched forward pass, aligns the four maps, and averages logits. It reuses the same trained weights. One original exposure plus three reflections remains one optical measurement.</p></section>
+<section><h2>Why a second light</h2><p>The independently acquired torch image tests whether the same pixels remain abnormal after relighting. On simulated pairs, 88 of 96 initial true alerts and 11 of 24 false alerts were confirmed by the four-view mask gate. Physical-fixture repeatability and sustained phone performance still require measurement.</p></section>
+</div>
+</main>
+<footer><a href="https://surfaceguard-evidence-lab.amitojxsingh2.chatgpt.site/#results">Interactive benchmark</a><a href="https://surfaceguard-evidence-lab.amitojxsingh2.chatgpt.site/assets/reflection-edge.json">Raw profile results</a><a href="https://surfaceguard-evidence-lab.amitojxsingh2.chatgpt.site/assets/reflection-review.json">Review calibration</a><a href="https://www.vicos.si/resources/kolektorsdd2/">Dataset attribution</a></footer>
+</body>
+</html>
